@@ -516,6 +516,22 @@ class Translator(object):
             scores = self.model.generator(dec_out.view(-1, dec_out.size(2)),
                                           attn.view(-1, attn.size(2)),
                                           src_map)
+
+            # Modify debug attention to show copy gate activation
+            maxes = scores.argmax(1)
+            extension_size = src_map.shape[-1]
+            tgt_vocab_size = len(self._tgt_vocab.itos)
+            copy_mask = maxes.gt(tgt_vocab_size-2).type('torch.FloatTensor').to('cuda')*2-1
+
+            """copy_mask = torch.Tensor([
+                sum([float(p) if i >= tgt_vocab_size else 0 for p,i in zip(pl,il)])
+                 >=
+                sum([float(p) if i < tgt_vocab_size else 0 for p,i in zip(pl,il)])
+                for pl,il in zip(*scores.topk(10))]).to('cuda')*2-1"""
+            attn[0] = attn[0]*copy_mask.reshape((copy_mask.shape[0],1))
+
+            #import pdb; pdb.set_trace()
+
             # here we have scores [tgt_lenxbatch, vocab] or [beamxbatch, vocab]
             if batch_offset is None:
                 scores = scores.view(-1, batch.batch_size, scores.size(-1))

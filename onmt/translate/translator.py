@@ -518,12 +518,14 @@ class Translator(object):
                                           src_map)
 
             # Add random component by multinomial sampling to beam search
+            rnd = torch.distributions.uniform.Uniform(0.0,1.0)
             temp = 1.0
             scores_ = (scores.log() / temp).exp()
             maxes = scores_.argmax(1)
             samples = scores_.multinomial(1)
-            for i in range(scores.shape[0]):
-                scores[i][maxes[i]], scores[i][samples[i]] =  scores[i][samples[i]], scores[i][maxes[i]]
+            #for i in range(scores.shape[0]):
+            #    if rnd.sample() < 0.3:
+            #        scores[i][maxes[i]], scores[i][samples[i]] =  scores[i][samples[i]], scores[i][maxes[i]]
 
             # Modify debug attention to show copy gate activation
             maxes = scores.argmax(1)

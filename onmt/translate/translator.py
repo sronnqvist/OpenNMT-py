@@ -531,13 +531,13 @@ class Translator(object):
             maxes = scores.argmax(1)
             extension_size = src_map.shape[-1]
             tgt_vocab_size = len(self._tgt_vocab.itos)
-            copy_mask = maxes.gt(tgt_vocab_size-2).type('torch.FloatTensor').to('cuda')*2-1
+            copy_mask = maxes.gt(tgt_vocab_size-2).type('torch.FloatTensor').to(self._dev)*2-1
 
             """copy_mask = torch.Tensor([
                 sum([float(p) if i >= tgt_vocab_size else 0 for p,i in zip(pl,il)])
                  >=
                 sum([float(p) if i < tgt_vocab_size else 0 for p,i in zip(pl,il)])
-                for pl,il in zip(*scores.topk(10))]).to('cuda')*2-1"""
+                for pl,il in zip(*scores.topk(10))]).to(self._dev)*2-1"""
             attn[0] = attn[0]*copy_mask.reshape((copy_mask.shape[0],1))
 
             #import pdb; pdb.set_trace()
